@@ -1,25 +1,36 @@
-$.ajax({
-    url: 'https://randomuser.me/api/',
-    dataType: 'json',
-    success: function (data) {
-        console.log(data.results[0]);
-    }
-});
+const randomUserUrl = 'https://randomuser.me/api/?results=12'
+const userGallery = document.getElementById('gallery');
 
-const randomUserUrl = 'https://randomuser.me/api/'
-const xhr = new XMLHttpRequest;
-xhr.onreadystatechange = function() {
-    if (this.readyState === 4) {
-        if (xhr.status === 200) {
-            console.log(xhr.responseText);
-        } else {
-            console.log(Error('something went wrong'));
-        }
+function checkResponse(response) {
+    if (response.ok) {
+        return Promise.resolve(response);
+    } else {
+        return Promise.reject(new Error(response.statusText));
     }
 }
-xhr.open('GET', randomUserUrl);
-xhr.send();
+
+function generateHTML(JsonObjArr) {
+
+    for (i = 0; i < JsonObjArr.length; i++) {
+        let cardHtml = `
+            <div class="card">
+                <div class="card-img-container">
+                    <img class="card-img" src=${JsonObjArr[i].picture.medium} alt="profile picture">
+                </div>
+                <div class="card-info-container">
+                    <h3 id="name" class="card-name cap">${JsonObjArr[i].name.first} ${JsonObjArr[i].name.last}</h3>
+                    <p class="card-text">${JsonObjArr[i].email}</p>
+                    <p class="card-text cap">${JsonObjArr[i].location.city}, ${JsonObjArr[i].location.state}</p>
+                </div>
+            </div>
+        `;
+
+        userGallery.insertAdjacentHTML('beforeend', cardHtml);
+    }
+}
 
 fetch(randomUserUrl)
+    .then(response => checkResponse(response))
     .then(response => response.json())
-    .then(data => console.log(data))
+    .then(data => generateHTML(data.results))
+    .catch(error => console.log('An error has occurred.', error))
